@@ -1,11 +1,11 @@
 {
   "name": "websocketiot",
-  "version": "0.0.3",
+  "version": "0.0.5-0",
   "description": "npm module for creating  node.js-esp websocket IOT project",
   "main": "./src/server/index.js",
   "scripts": {
-    "debug": "nodemon ./src/server/index.js",
-    "test": "node ./src/server/index.js"
+    "debug": "nodemon ./src/index.js",
+    "test": "node ./src/index.js"
   },
   "repository": {
     "type": "git",
