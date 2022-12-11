@@ -1,0 +1,32 @@
+{
+  "name": "websocketiot",
+  "version": "0.0.1",
+  "description": "npm module for creating  node.js-esp websocket IOT project",
+  "main": "./src/server/index.js",
+  "scripts": {
+    "debug": "nodemon ./src/server/index.js",
+    "test": "node ./src/server/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shaladdin/WebSocketIOT.git"
+  },
+  "keywords": [
+    "IOT",
+    "Node.js",
+    "ESP",
+    "Websocket"
+  ],
+  "author": "Shalladin.js",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Shaladdin/WebSocketIOT/issues"
+  },
+  "homepage": "https://github.com/Shaladdin/WebSocketIOT#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "nedb": "^1.8.0",
+    "nodemon": "^2.0.20",
+    "ws": "^8.11.0"
+  }
+}
