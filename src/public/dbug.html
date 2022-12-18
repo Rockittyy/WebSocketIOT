@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+</head>
+
+<body>
+    <textarea name="input" id="wsIn" cols="30" rows="10">
+    {
+        "msg": "connectClient"
+    }
+    </textarea>
+    <button>send</button>
+    <br>
+    // request example:
+    /*
+    <br>
+    {
+    "msg":"identity",
+    "device":"roboBin"
+    }
+    <br>
+    {
+    "type": "stream",
+    "stream": "sensors",
+    "data": {
+    "metal": 20,
+    "nonMetal": 4
+    }
+    }
+    <br><br>
+    {
+    "msg": "connectClient"
+    }
+    <br>
+    {
+    "msg":"change mode",
+    "mode": "sensorStream"
+    }
+    <br>
+    {
+    "msg":"security mode",
+    "mode":true
+    }
+    <br><br>
+    {
+    "msg":"identity",
+    "device":"smartHome"
+    }
+    <br>
+    {
+    "type": "stream",
+    "stream": "sensors",
+    "data": {
+    "orang": 0,
+    "suhu": 26.7,
+    "humidity": 53,
+    "flame": 2.8348,
+    "light": 29.22776,
+    "gas": {
+    "smoke": 0.029112,
+    "co": 0.007895,
+    "lpg": 0.010715
+    }
+    }
+    }
+    <br>
+    {
+    "type":"notify",
+    "notify":0
+    }
+    <br>
+    {
+    "type":"load"
+    }
+    <br><br>
+    */
+</body>
+<script src="./js/ws.js"></script>
+<script src="./js/common.js"></script>
+<script>
+    var currentSocket;
+    var firstInit = true;
+    const input = document.getElementById('wsIn');
+    init((socket) => {
+        currentSocket = socket;
+        if (firstInit)
+            document.getElementsByTagName('button')[0].addEventListener("click", () => currentSocket.send(input.value));
+        firstInit = false;
+    });
+</script>
+
+</html>
