@@ -3,6 +3,13 @@ import {
     isType,
 } from './common.js';
 
+// !TODO:
+/*
+!
+!       MAKE CODE WORK ON ES AND COMMONJS
+!
+!
+*/
 import http from 'http'
 import express from 'express';
 import nedb from 'nedb';
@@ -12,7 +19,6 @@ import Nedb from 'nedb';
 import { resolve } from 'path';
 import { rejects } from 'assert';
 import { Key } from 'readline';
-
 type MsgHandler = (msg: WsiotMsg) => void;
 interface BasicWsiotMsg extends Object {
     message: string;
@@ -256,3 +262,4 @@ function authProtocol(ws: WebSocket) {
 
 
 }
+// (new IOTServer({ useRouter: true }))

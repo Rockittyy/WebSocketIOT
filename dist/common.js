@@ -1,14 +1,11 @@
 //* common function
 // Because you're using ES module, and __dirname isn't a part of ESM. 
 // this code will help
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 // path handler
 export const filterEmpty = (arr) => arr.filter(element => (element != null && element != ''));
 export const extension = (file) => file.split('.').pop(); // get file extension
 export const fileName = (file) => filterEmpty(file.split('.')).shift().split(/[\\/]/g).pop(); //get file name only
-export const __filename = fileURLToPath(import.meta.url);
-export const __dirname = dirname(__filename);
+export const __dirname = process.cwd();
 // json
 export const { stringify, parse: jsonify } = JSON;
 export const objify = (str) => { try {

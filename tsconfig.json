@@ -1,13 +1,18 @@
 {
     "compilerOptions": {
-        "module":"NodeNext",
+        "module": "NodeNext",
         "moduleResolution": "NodeNext",
         "target": "ES2022",
         "sourceMap": true,
         "watch": true,
         "outDir": "dist",
         "strict": true,
+        "esModuleInterop": true,
     },
-    "include": ["src/**/*"],
-    "types": ["node"]
+    "include": [
+        "src/**/*"
+    ],
+    "types": [
+        "node"
+    ],
 }

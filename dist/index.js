@@ -1,4 +1,11 @@
 import { objify, getUniqueID, stringify, extension, fileName, isType, } from './common.js';
+// !TODO:
+/*
+!
+!       MAKE CODE WORK ON ES AND COMMONJS
+!
+!
+*/
 import http from 'http';
 import express from 'express';
 import nedb from 'nedb';
@@ -198,4 +205,5 @@ function authProtocol(ws) {
         connection.send({ message: `connected as ${connection.device}` });
     }, "authMsg");
 }
+// (new IOTServer({ useRouter: true }))
 //# sourceMappingURL=index.js.map

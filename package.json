@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "node .",
-    "dev": "tsc",
+    "dev": "tsc --declaration",
     "debug": "nodemon ."
   },
   "repository": {
