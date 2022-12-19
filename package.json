@@ -33,7 +33,9 @@
   },
   "exports": {
     ".": {
-      "require": "./dist/index.js"
+      "require": "./dist/index.js",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     }
   },
   "devDependencies": {
