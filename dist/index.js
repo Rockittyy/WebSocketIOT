@@ -198,5 +198,4 @@ function authProtocol(ws) {
         connection.send({ message: `connected as ${connection.device}` });
     }, "authMsg");
 }
-(new IOTServer({ usePublic: true, port: 8089 }));
 //# sourceMappingURL=index.js.map

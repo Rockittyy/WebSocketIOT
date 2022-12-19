@@ -256,5 +256,3 @@ function authProtocol(ws: WebSocket) {
 
 
 }
-
-(new IOTServer({ usePublic: true, port: 8089 }));
