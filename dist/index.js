@@ -9,18 +9,25 @@ export class Connection {
     // statics prop
     static connections = {}; // store the connection
     static addConnection = (connection) => Connection.connections[connection.id] = connection; // syntax sugar to add connection
-    static sendAnonymus = (ws, msg) => ws.send(stringify(msg));
+    static send = (ws, msg) => ws.send(stringify(msg));
     static sendError = (ws, error) => ws.send(stringify({ message: "error", error }));
-    static attachMsgHandler = (ws, run, request) => {
+    static logRawFunc = (device, ...params) => console.dirxml(device + ':', ...params);
+    static log = (...params) => this.logRawFunc('uknown', ...params);
+    static attachMsgHandler = (ws, run, request, authenticated = false) => {
+        //    TODO: make the "no request found msg"
         ws.on('message', (msg) => {
             const objMsg = objify(msg.toString());
             if (objMsg instanceof Error) {
-                // TODO: error: if its not json, send error
+                this.sendError(ws, "request must be in json format!");
+                return;
+            }
+            if (!authenticated && objMsg.message != "authMsg") {
+                Connection.sendError(ws, "please authenticate this connection before preceeding");
                 return;
             }
             if (request && (objMsg.message != request))
                 return;
-            if (!Connection.checkFormat(objMsg, Connection.msgLiterals.basic))
+            if (!this.checkFormat(objMsg, this.msgLiterals.basic))
                 return;
             run(objMsg);
         });
@@ -28,7 +35,7 @@ export class Connection {
     static checkFormat = (req, type, ws) => {
         var formated = isType(req, type);
         if (!formated && ws)
-            Connection.sendError(ws, 'bad format, format is ' + stringify(type));
+            this.sendError(ws, 'bad format, format is ' + stringify(type));
         return formated;
     };
     // instence prop
@@ -40,7 +47,7 @@ export class Connection {
     saveData;
     data;
     run;
-    log(...params) { console.dirxml(this.device + ':', ...arguments); }
+    log(...params) { Connection.logRawFunc(this.device, ...params); }
     ;
     send(msg) { this.ws.send(stringify(msg)); }
     ;
@@ -76,12 +83,13 @@ export class Client extends Connection {
     // static prop
     static clients = {}; // store the connection
     static addClient = (client) => Client.clients[client.id] = client; // syntax sugar to add connection
-    constructor(ws, id) {
+    constructor(ws, id, run) {
         // client handler
         super(ws, (req) => {
             const {} = this;
             // TODO: client code handler //on progress
-            this.log(req);
+            if (run)
+                run(req);
         }, id);
         Client.addClient(this);
     }
@@ -148,22 +156,25 @@ export class IOTServer {
         wss.on('connection', authProtocol);
     }
 }
+var runExtraAuth = () => { };
+export function extraAuth(run) { runExtraAuth = run; }
 // authenticate who is connecting
-async function authProtocol(ws) {
+function authProtocol(ws) {
+    Connection.log("websocketiot connection been made", ws);
     // is the connection already authenticated or not
-    var authenticated = false;
+    var connection;
     // send the identification request just in case
     const identifyMsg = { message: "auth is requested" };
-    Connection.sendAnonymus(ws, identifyMsg);
+    Connection.send(ws, identifyMsg);
     Connection.attachMsgHandler(ws, (req) => {
-        if (authenticated) {
+        if (connection) {
+            connection.sendError(`this device already connected as ${connection.device}. an relogin attemp is forbids`);
             return;
         }
         ;
-        if (Connection.checkFormat(req, Connection.msgLiterals.auth, ws))
+        if (!Connection.checkFormat(req, Connection.msgLiterals.auth, ws))
             return;
         // authenticate the connection
-        var connection;
         // if its an client
         switch (req.type) {
             case 'client':
@@ -172,21 +183,20 @@ async function authProtocol(ws) {
             case 'device':
                 if (!req.deviceType) {
                     // *badRequest
-                    Connection.sendError(ws, 'device type is not valid, device type avilable is "client" or "device" only');
+                    Connection.sendError(ws, 'device type is not specified, device type avilable is "client" or "device" only');
                     return;
                 }
                 connection = new Device.DeviceKinds[req.deviceType](ws, req.id);
                 break;
             default:
-                // TODO: error: no type found
+                Connection.sendError(ws, 'device type is not valid, device type avilable is "client" or "device" only');
                 return;
         }
         ;
-        authenticated = true;
         connection.log("connected as ", connection.connectionType);
+        runExtraAuth();
         connection.send({ message: `connected as ${connection.device}` });
     }, "authMsg");
 }
 (new IOTServer({ usePublic: true, port: 8089 }));
-// console.log(isType({},{hello:"world"}))
 //# sourceMappingURL=index.js.map

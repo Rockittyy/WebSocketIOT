@@ -18,7 +18,7 @@ catch (e) {
     return e;
 } }; // turn string into json SAFELY 
 export const isType = (obj, type) => (typeof obj === 'object' && Object.keys(type).every(key => key in obj && typeof obj[key] === typeof type[key]));
-// make id for websocket
+// make id
 export function getUniqueID() {
     function s4() {
         return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
