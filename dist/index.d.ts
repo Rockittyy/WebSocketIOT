@@ -21,7 +21,7 @@ interface MessageLiterals {
     auth: AuthMsg;
 }
 type ConnectionType = 'client' | 'device' | 'uknown';
-export declare class Connection {
+declare class Connection {
     static readonly connections: {
         [key: string]: Connection;
     };
@@ -46,15 +46,7 @@ export declare class Connection {
     constructor(ws: WebSocket, run: (req: WsiotMsg) => void, id?: string, saveData?: boolean, connectionType?: ConnectionType, data?: object | undefined);
     static readonly msgLiterals: MessageLiterals;
 }
-export declare class Client extends Connection {
-    readonly connectionType: ConnectionType;
-    static readonly clients: {
-        [key: string]: Client;
-    };
-    static readonly addClient: (client: Client) => Client;
-    constructor(ws: WebSocket, id?: string, run?: MsgHandler);
-}
-export declare class Device extends Connection {
+declare class Device extends Connection {
     readonly connectionType: ConnectionType;
     get device(): string;
     static readonly DeviceKinds: {
@@ -81,7 +73,7 @@ interface ServerOption {
     useRouter: boolean;
     routersPath: string;
 }
-export declare class IOTServer {
+declare class IOTServer {
     readonly port: number;
     readonly app: express.Application;
     readonly server: http.Server;
@@ -95,5 +87,6 @@ export declare class IOTServer {
     readonly routersPath: string;
     constructor(option?: object | ServerOption);
 }
-export declare function extraAuth(run: () => void): void;
-export {};
+declare function extraAuth(run: () => void): void;
+export { IOTServer, Connection, Device, extraAuth };
+export default IOTServer;

@@ -41,7 +41,7 @@ interface MessageLiterals {
 
 type ConnectionType = 'client' | 'device' | 'uknown';
 //* connection object
-export class Connection {
+class Connection {
     // statics prop
     public static readonly connections: { [key: string]: Connection } = {};// store the connection
     public static readonly addConnection = (connection: Connection) => Connection.connections[connection.id] = connection;// syntax sugar to add connection
@@ -104,7 +104,7 @@ export class Connection {
 }
 
 // subClass client, for client
-export class Client extends Connection {
+class Client extends Connection {
     // overrides
     public readonly connectionType: ConnectionType = 'client';
     // TODO: Scream function
@@ -123,7 +123,7 @@ export class Client extends Connection {
 }
 
 // subClass device, for robots
-export class Device extends Connection {
+class Device extends Connection {
     // overrides
     public readonly connectionType: ConnectionType = 'device';
     public get device(): string { return this.deviceKind + ":" + this.id };
@@ -166,7 +166,7 @@ interface ServerOption {
     routersPath: string,
 }
 
-export class IOTServer {
+class IOTServer {
     readonly port: number = 8080;
     readonly app: express.Application = express();
     readonly server: http.Server = http.createServer(this.app);
@@ -219,7 +219,7 @@ export class IOTServer {
 }
 
 var runExtraAuth = () => { };
-export function extraAuth(run: () => void) { runExtraAuth = run }
+function extraAuth(run: () => void) { runExtraAuth = run }
 
 // authenticate who is connecting
 function authProtocol(ws: WebSocket) {
@@ -262,4 +262,6 @@ function authProtocol(ws: WebSocket) {
 
 
 }
+export { IOTServer, Connection, Device, extraAuth };
+export default IOTServer;
 // (new IOTServer({ useRouter: true }))

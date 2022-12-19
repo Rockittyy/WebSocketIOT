@@ -12,7 +12,7 @@ import nedb from 'nedb';
 import WebSocket, { WebSocketServer } from 'ws';
 import * as fs from 'fs';
 //* connection object
-export class Connection {
+class Connection {
     // statics prop
     static connections = {}; // store the connection
     static addConnection = (connection) => Connection.connections[connection.id] = connection; // syntax sugar to add connection
@@ -83,7 +83,7 @@ export class Connection {
     };
 }
 // subClass client, for client
-export class Client extends Connection {
+class Client extends Connection {
     // overrides
     connectionType = 'client';
     // TODO: Scream function
@@ -102,7 +102,7 @@ export class Client extends Connection {
     }
 }
 // subClass device, for robots
-export class Device extends Connection {
+class Device extends Connection {
     // overrides
     connectionType = 'device';
     get device() { return this.deviceKind + ":" + this.id; }
@@ -120,7 +120,7 @@ export class Device extends Connection {
         super(ws, run, id, saveData);
     }
 }
-export class IOTServer {
+class IOTServer {
     port = 8080;
     app = express();
     server = http.createServer(this.app);
@@ -164,7 +164,7 @@ export class IOTServer {
     }
 }
 var runExtraAuth = () => { };
-export function extraAuth(run) { runExtraAuth = run; }
+function extraAuth(run) { runExtraAuth = run; }
 // authenticate who is connecting
 function authProtocol(ws) {
     Connection.log("websocketiot connection been made", ws);
@@ -205,5 +205,7 @@ function authProtocol(ws) {
         connection.send({ message: `connected as ${connection.device}` });
     }, "authMsg");
 }
+export { IOTServer, Connection, Device, extraAuth };
+export default IOTServer;
 // (new IOTServer({ useRouter: true }))
 //# sourceMappingURL=index.js.map
