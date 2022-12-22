@@ -216,12 +216,12 @@ class IOTServer {
 
 
         // use auth protocol on websocket
-        wss.on('connection', this.authProtocol);
+        wss.on('connection', (ws) => this.authProtocol(ws, this));
 
     }
 
     // authenticate who is connecting
-    private authProtocol(ws: WebSocket) {
+    private authProtocol(ws: WebSocket, server: IOTServer) {
         Connection.log("websocketiot connection been made")
         // is the connection already authenticated or not
         var connection: Connection;
@@ -255,7 +255,7 @@ class IOTServer {
                     return;
             };
             connection.log("connected as ", connection.connectionType);
-            this.runExtraAuth();
+            server.runExtraAuth();
             connection.send({ message: `connected as ${connection.device}` });
         }, Connection.msgLiterals.auth.message,)
     }
@@ -264,4 +264,4 @@ class IOTServer {
 
 export { IOTServer, Connection, Device };
 export default IOTServer;
-// (new IOTServer({ usePublic: true }))
+// const Server = (new IOTServer({ usePublic: true }));

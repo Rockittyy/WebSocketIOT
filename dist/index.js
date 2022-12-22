@@ -162,10 +162,10 @@ class IOTServer {
                 });
             });
         // use auth protocol on websocket
-        wss.on('connection', this.authProtocol);
+        wss.on('connection', (ws) => this.authProtocol(ws, this));
     }
     // authenticate who is connecting
-    authProtocol(ws) {
+    authProtocol(ws, server) {
         Connection.log("websocketiot connection been made");
         // is the connection already authenticated or not
         var connection;
@@ -200,12 +200,12 @@ class IOTServer {
             }
             ;
             connection.log("connected as ", connection.connectionType);
-            this.runExtraAuth();
+            server.runExtraAuth();
             connection.send({ message: `connected as ${connection.device}` });
         }, Connection.msgLiterals.auth.message);
     }
 }
 export { IOTServer, Connection, Device };
 export default IOTServer;
-// (new IOTServer({ usePublic: true }))
+// const Server = (new IOTServer({ usePublic: true }));
 //# sourceMappingURL=index.js.map
