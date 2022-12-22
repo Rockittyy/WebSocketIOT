@@ -207,5 +207,5 @@ class IOTServer {
 }
 export { IOTServer, Connection, Device };
 export default IOTServer;
-(new IOTServer({ usePublic: true }));
+// (new IOTServer({ usePublic: true }))
 //# sourceMappingURL=index.js.map
