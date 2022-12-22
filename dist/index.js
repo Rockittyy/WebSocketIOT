@@ -28,7 +28,7 @@ class Connection {
                 this.sendError(ws, "request must be in json format!");
                 return;
             }
-            if (!authenticated && objMsg.message != "authMsg") {
+            if (!authenticated && objMsg.message != Connection.msgLiterals.auth.message) {
                 Connection.sendError(ws, "please authenticate this connection before preceeding");
                 return;
             }
@@ -79,7 +79,7 @@ class Connection {
     // message instance literal
     static msgLiterals = {
         basic: { message: '' },
-        auth: { type: 'uknown', message: '' },
+        auth: { type: 'uknown', message: 'authRequest' },
     };
 }
 // subClass client, for client
@@ -128,11 +128,13 @@ class IOTServer {
     ;
     dbPath = `./src/db/iot.db`;
     db = new nedb();
-    saveDB = true;
+    saveDB = false;
     usePublic = false;
     publicPath = `./src/public`;
     useRouter = false;
     routersPath = `dist/router`; //in folder
+    runExtraAuth = () => { };
+    extraAuth(run) { this.runExtraAuth = run; }
     constructor(option = {}) {
         for (const [key, value] of Object.entries(option))
             if (value !== undefined)
@@ -160,52 +162,50 @@ class IOTServer {
                 });
             });
         // use auth protocol on websocket
-        wss.on('connection', authProtocol);
+        wss.on('connection', this.authProtocol);
+    }
+    // authenticate who is connecting
+    authProtocol(ws) {
+        Connection.log("websocketiot connection been made");
+        // is the connection already authenticated or not
+        var connection;
+        // send the identification request just in case
+        const identifyMsg = { message: "auth is requested" };
+        Connection.send(ws, identifyMsg);
+        Connection.attachMsgHandler(ws, (req) => {
+            if (connection) {
+                connection.sendError(`this device already connected as ${connection.device}. an relogin attemp is forbids`);
+                return;
+            }
+            ;
+            if (!Connection.checkFormat(req, Connection.msgLiterals.auth, ws))
+                return;
+            // authenticate the connection
+            // if its an client
+            switch (req.type) {
+                case 'client':
+                    connection = new Client(ws, req.id);
+                    break;
+                case 'device':
+                    if (!req.deviceType) {
+                        // *badRequest
+                        Connection.sendError(ws, 'device kind is not specified');
+                        return;
+                    }
+                    connection = new Device.DeviceKinds[req.deviceType](ws, req.id);
+                    break;
+                default:
+                    Connection.sendError(ws, 'device type is not valid, device type avilable is "client" or "device" only');
+                    return;
+            }
+            ;
+            connection.log("connected as ", connection.connectionType);
+            this.runExtraAuth();
+            connection.send({ message: `connected as ${connection.device}` });
+        }, Connection.msgLiterals.auth.message);
     }
 }
-var runExtraAuth = () => { };
-function extraAuth(run) { runExtraAuth = run; }
-// authenticate who is connecting
-function authProtocol(ws) {
-    Connection.log("websocketiot connection been made", ws);
-    // is the connection already authenticated or not
-    var connection;
-    // send the identification request just in case
-    const identifyMsg = { message: "auth is requested" };
-    Connection.send(ws, identifyMsg);
-    Connection.attachMsgHandler(ws, (req) => {
-        if (connection) {
-            connection.sendError(`this device already connected as ${connection.device}. an relogin attemp is forbids`);
-            return;
-        }
-        ;
-        if (!Connection.checkFormat(req, Connection.msgLiterals.auth, ws))
-            return;
-        // authenticate the connection
-        // if its an client
-        switch (req.type) {
-            case 'client':
-                connection = new Client(ws, req.id);
-                break;
-            case 'device':
-                if (!req.deviceType) {
-                    // *badRequest
-                    Connection.sendError(ws, 'device type is not specified, device type avilable is "client" or "device" only');
-                    return;
-                }
-                connection = new Device.DeviceKinds[req.deviceType](ws, req.id);
-                break;
-            default:
-                Connection.sendError(ws, 'device type is not valid, device type avilable is "client" or "device" only');
-                return;
-        }
-        ;
-        connection.log("connected as ", connection.connectionType);
-        runExtraAuth();
-        connection.send({ message: `connected as ${connection.device}` });
-    }, "authMsg");
-}
-export { IOTServer, Connection, Device, extraAuth };
+export { IOTServer, Connection, Device };
 export default IOTServer;
-// (new IOTServer({ useRouter: true }))
+(new IOTServer({ usePublic: true }));
 //# sourceMappingURL=index.js.map

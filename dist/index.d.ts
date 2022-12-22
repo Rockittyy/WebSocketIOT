@@ -12,6 +12,7 @@ interface WsiotMsg extends BasicWsiotMsg {
     [key: string]: any;
 }
 interface AuthMsg extends BasicWsiotMsg {
+    message: 'authRequest';
     type: ConnectionType;
     deviceType?: string;
     id?: string;
@@ -85,8 +86,10 @@ declare class IOTServer {
     readonly publicPath: string;
     readonly useRouter: boolean;
     readonly routersPath: string;
+    runExtraAuth: () => void;
+    extraAuth(run: () => void): void;
     constructor(option?: object | ServerOption);
+    private authProtocol;
 }
-declare function extraAuth(run: () => void): void;
-export { IOTServer, Connection, Device, extraAuth };
+export { IOTServer, Connection, Device };
 export default IOTServer;
