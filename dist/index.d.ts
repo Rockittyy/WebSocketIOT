@@ -4,25 +4,25 @@ import express from 'express';
 import nedb from 'nedb';
 import WebSocket, { WebSocketServer } from 'ws';
 import Nedb from 'nedb';
-type msgTransmiter = (msg: WsiotMsg) => void;
-type MsgHandler = (msg: WsiotMsg, connection?: Connection) => void;
-interface BasicWsiotMsg extends Object {
+export type msgTransmiter = (msg: WsiotMsg) => void;
+export type MsgHandler = (msg: WsiotMsg, connection?: Connection) => void;
+export interface BasicWsiotMsg extends Object {
     message: string;
 }
-interface WsiotMsg extends BasicWsiotMsg {
+export interface WsiotMsg extends BasicWsiotMsg {
     [key: string]: any;
 }
-interface AuthMsg extends BasicWsiotMsg {
+export interface AuthMsg extends BasicWsiotMsg {
     message: 'authRequest';
     type: ConnectionType;
     deviceType?: string;
     id?: string;
 }
-interface MessageLiterals {
+export interface MessageLiterals {
     basic: WsiotMsg;
     auth: AuthMsg;
 }
-type ConnectionType = 'client' | 'device' | 'uknown';
+export type ConnectionType = 'client' | 'device' | 'uknown';
 declare class Connection {
     static scream: msgTransmiter;
     static readonly connections: {
@@ -77,7 +77,7 @@ declare abstract class Device extends Connection {
     abstract readonly deviceKind: string;
     constructor(ws: WebSocket, run: MsgHandler, id: string, saveData?: boolean);
 }
-interface ServerOption {
+export interface ServerOption {
     port: number;
     app: express.Application;
     server: http.Server;

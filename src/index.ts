@@ -16,30 +16,27 @@ import nedb from 'nedb';
 import WebSocket, { WebSocketServer } from 'ws';
 import * as fs from 'fs'
 import Nedb from 'nedb';
-import { resolve } from 'path';
-import { rejects } from 'assert';
-import { Key } from 'readline';
 
-type msgTransmiter = (msg: WsiotMsg) => void;
-type MsgHandler = (msg: WsiotMsg, connection?: Connection) => void;
-interface BasicWsiotMsg extends Object { message: string; }
-interface WsiotMsg extends BasicWsiotMsg { [key: string]: any; }
+export type msgTransmiter = (msg: WsiotMsg) => void;
+export type MsgHandler = (msg: WsiotMsg, connection?: Connection) => void;
+export interface BasicWsiotMsg extends Object { message: string; }
+export interface WsiotMsg extends BasicWsiotMsg { [key: string]: any; }
 
 // authenticate
-interface AuthMsg extends BasicWsiotMsg {
+export interface AuthMsg extends BasicWsiotMsg {
     message: 'authRequest';
     type: ConnectionType;
     deviceType?: string;
     id?: string;
 }
 
-interface MessageLiterals {
+export interface MessageLiterals {
     basic: WsiotMsg;
     auth: AuthMsg;
 }
 
 
-type ConnectionType = 'client' | 'device' | 'uknown';
+export type ConnectionType = 'client' | 'device' | 'uknown';
 //* connection object
 class Connection {
     // statics prop
@@ -158,7 +155,7 @@ abstract class Device extends Connection {
 }
 
 //* server option
-interface ServerOption {
+export interface ServerOption {
     port: number,
     app: express.Application,
     server: http.Server,
