@@ -29,8 +29,9 @@ class Connection {
                 this.sendError(ws, "request must be in json format!");
                 return;
             }
-            if (!authenticated && objMsg.message != Connection.msgLiterals.auth.message) {
-                Connection.sendError(ws, "please authenticate this connection before preceeding");
+            if (authenticated() != (objMsg.message != Connection.msgLiterals.auth.message)) {
+                Connection.sendError(ws, authenticated() ? `this device already connected as ${connection?.device}. an relogin attemp is forbids` :
+                    "please authenticate this connection before preceeding");
                 return;
             }
             if (request && (objMsg.message != request))
@@ -94,7 +95,7 @@ class Client extends Connection {
     // static prop
     static clients = {}; // store the connection
     static addClient = (client) => Client.clients[client.id] = client; // syntax sugar to add connection
-    static clientHandler = (req, connection) => { };
+    static clientHandler = (req, connection) => { connection?.log("client code is undefined"); };
     constructor(ws, id, run) {
         // client handler
         super(ws, Client.clientHandler, id);
@@ -176,11 +177,8 @@ class IOTServer {
         const identifyMsg = { message: "auth is requested" };
         Connection.send(ws, identifyMsg);
         Connection.attachMsgHandler(ws, (req) => {
-            if (connection) {
-                connection.sendError(`this device already connected as ${connection.device}. an relogin attemp is forbids`);
+            if (connection)
                 return;
-            }
-            ;
             Connection.log(req);
             if (!Connection.checkFormat(req, Connection.msgLiterals.auth, ws))
                 return;
@@ -212,10 +210,11 @@ class IOTServer {
             connection.log("connected as ", connection.connectionType);
             server.runExtraAuth();
             connection.send({ message: `connected as ${connection.device}`, id: connection.id });
+            authenticated = true;
         }, Connection.msgLiterals.auth.message, () => authenticated);
     }
 }
 export { IOTServer, Connection, Client, Device };
 export default IOTServer;
-// const Server = (new IOTServer({ usePublic: true }));
+const Server = (new IOTServer({ usePublic: true }));
 //# sourceMappingURL=index.js.map

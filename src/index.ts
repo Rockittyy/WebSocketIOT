@@ -55,7 +55,10 @@ class Connection {
                 this.sendError(ws, "request must be in json format!");
                 return;
             }
-            if (!authenticated && objMsg.message != Connection.msgLiterals.auth.message) { Connection.sendError(ws, "please authenticate this connection before preceeding"); return; }
+            if (authenticated() != (objMsg.message != Connection.msgLiterals.auth.message)) {
+                Connection.sendError(ws, authenticated() ? `this device already connected as ${connection?.device}. an relogin attemp is forbids` :
+                    "please authenticate this connection before preceeding"); return;
+            }
             if (request && (objMsg.message != request)) return;
             //* in case you forgot again, the  `request` parameter is the "id" for the request handler. so if its not the correct request it will return like in below
             if (!this.checkFormat(objMsg, this.msgLiterals.basic)) return;
@@ -112,7 +115,7 @@ class Client extends Connection {
     // static prop
     public static readonly clients: { [key: string]: Client } = {};// store the connection
     public static readonly addClient = (client: Client) => Client.clients[client.id] = client;// syntax sugar to add connection
-    public static clientHandler: MsgHandler = (req, connection) => { };
+    public static clientHandler: MsgHandler = (req, connection) => { connection?.log("client code is undefined") };
 
     constructor(ws: WebSocket, id?: string, run?: MsgHandler) {
         // client handler
@@ -236,10 +239,7 @@ class IOTServer {
         Connection.send(ws, identifyMsg);
 
         Connection.attachMsgHandler(ws, (req) => {
-            if (connection) {
-                connection.sendError(`this device already connected as ${connection.device}. an relogin attemp is forbids`)
-                return;
-            };
+            if (connection) return;
             Connection.log(req);
             if (!Connection.checkFormat(req, Connection.msgLiterals.auth, ws)) return;
             // authenticate the connection
@@ -268,6 +268,7 @@ class IOTServer {
             connection.log("connected as ", connection.connectionType);
             server.runExtraAuth();
             connection.send({ message: `connected as ${connection.device}`, id: connection.id });
+            authenticated = true;
         }, Connection.msgLiterals.auth.message, () => authenticated)
     }
 }
@@ -279,4 +280,4 @@ export {
     BasicWsiotMsg, WsiotMsg, AuthMsg, MessageLiterals, ServerOption
 };
 export default IOTServer;
-// const Server = (new IOTServer({ usePublic: true }));
+const Server = (new IOTServer({ usePublic: true }));
