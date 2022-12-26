@@ -273,7 +273,7 @@ class IOTServer {
         }, Connection.msgLiterals.auth.message, () => authenticated)
     }
 }
-
+ 
 
 export {
     IOTServer, Connection, Client, Device,

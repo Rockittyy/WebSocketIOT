@@ -66,6 +66,7 @@ class Connection {
     ;
     attachMsgHandler(run, request) { Connection.attachMsgHandler(this.ws, run, request, () => true, this.connection); }
     ;
+    checkFormat(req, type, sendError = true) { return Connection.checkFormat(req, type, sendError ? this.ws : undefined); }
     constructor(ws, run, id = getUniqueID(), saveData = false, connectionType, data = undefined) {
         this.ws = ws;
         this.run = run;

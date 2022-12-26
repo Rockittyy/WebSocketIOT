@@ -47,6 +47,7 @@ declare class Connection {
     send(msg: WsiotMsg): void;
     sendError(error: string): void;
     attachMsgHandler(run: MsgHandler, request?: string): void;
+    checkFormat<T extends WsiotMsg>(req: WsiotMsg, type: T, sendError?: boolean): req is T;
     constructor(ws: WebSocket, run: MsgHandler, id?: string, saveData?: boolean, connectionType?: ConnectionType, data?: object | undefined);
     static readonly msgLiterals: MessageLiterals;
 }
