@@ -87,6 +87,7 @@ class Connection {
     send(msg: WsiotMsg) { this.ws.send(stringify(msg)) };
     sendError(error: string) { Connection.sendError(this.ws, error) };
     attachMsgHandler(run: MsgHandler, request?: string) { Connection.attachMsgHandler(this.ws, run, request, () => true, this.connection) };
+    checkFormat<T extends WsiotMsg>(req: WsiotMsg, type: T): req is T { return Connection.checkFormat(req, type, this.ws) }
 
     constructor(ws: WebSocket, run: MsgHandler, id: string = getUniqueID(), saveData = false, connectionType?: ConnectionType, data: object | undefined = undefined) {
         this.ws = ws; this.run = run; this.id = id; this.saveData = saveData; this.data = data;
