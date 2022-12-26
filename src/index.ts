@@ -17,26 +17,26 @@ import WebSocket, { WebSocketServer } from 'ws';
 import * as fs from 'fs'
 import Nedb from 'nedb';
 
-export type msgTransmiter = (msg: WsiotMsg) => void;
-export type MsgHandler = (msg: WsiotMsg, connection?: Connection) => void;
-export interface BasicWsiotMsg extends Object { message: string; }
-export interface WsiotMsg extends BasicWsiotMsg { [key: string]: any; }
+type msgTransmiter = (msg: WsiotMsg) => void;
+type MsgHandler = (msg: WsiotMsg, connection?: Connection) => void;
+interface BasicWsiotMsg extends Object { message: string; }
+interface WsiotMsg extends BasicWsiotMsg { [key: string]: any; }
 
 // authenticate
-export interface AuthMsg extends BasicWsiotMsg {
+interface AuthMsg extends BasicWsiotMsg {
     message: 'authRequest';
     type: ConnectionType;
     deviceType?: string;
     id?: string;
 }
 
-export interface MessageLiterals {
+interface MessageLiterals {
     basic: WsiotMsg;
     auth: AuthMsg;
 }
 
 
-export type ConnectionType = 'client' | 'device' | 'uknown';
+type ConnectionType = 'client' | 'device' | 'uknown';
 //* connection object
 class Connection {
     // statics prop
@@ -155,7 +155,7 @@ abstract class Device extends Connection {
 }
 
 //* server option
-export interface ServerOption {
+interface ServerOption {
     port: number,
     app: express.Application,
     server: http.Server,
@@ -272,6 +272,10 @@ class IOTServer {
 }
 
 
-export { IOTServer, Connection, Client, Device };
+export {
+    IOTServer, Connection, Client, Device,
+    msgTransmiter, MsgHandler, ConnectionType,
+    BasicWsiotMsg, WsiotMsg, AuthMsg, MessageLiterals, ServerOption
+};
 export default IOTServer;
 // const Server = (new IOTServer({ usePublic: true }));

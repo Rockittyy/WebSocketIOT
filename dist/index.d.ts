@@ -4,25 +4,25 @@ import express from 'express';
 import nedb from 'nedb';
 import WebSocket, { WebSocketServer } from 'ws';
 import Nedb from 'nedb';
-export type msgTransmiter = (msg: WsiotMsg) => void;
-export type MsgHandler = (msg: WsiotMsg, connection?: Connection) => void;
-export interface BasicWsiotMsg extends Object {
+type msgTransmiter = (msg: WsiotMsg) => void;
+type MsgHandler = (msg: WsiotMsg, connection?: Connection) => void;
+interface BasicWsiotMsg extends Object {
     message: string;
 }
-export interface WsiotMsg extends BasicWsiotMsg {
+interface WsiotMsg extends BasicWsiotMsg {
     [key: string]: any;
 }
-export interface AuthMsg extends BasicWsiotMsg {
+interface AuthMsg extends BasicWsiotMsg {
     message: 'authRequest';
     type: ConnectionType;
     deviceType?: string;
     id?: string;
 }
-export interface MessageLiterals {
+interface MessageLiterals {
     basic: WsiotMsg;
     auth: AuthMsg;
 }
-export type ConnectionType = 'client' | 'device' | 'uknown';
+type ConnectionType = 'client' | 'device' | 'uknown';
 declare class Connection {
     static scream: msgTransmiter;
     static readonly connections: {
@@ -77,7 +77,7 @@ declare abstract class Device extends Connection {
     abstract readonly deviceKind: string;
     constructor(ws: WebSocket, run: MsgHandler, id: string, saveData?: boolean);
 }
-export interface ServerOption {
+interface ServerOption {
     port: number;
     app: express.Application;
     server: http.Server;
@@ -107,5 +107,5 @@ declare class IOTServer {
     constructor(option?: object | ServerOption);
     private authProtocol;
 }
-export { IOTServer, Connection, Client, Device };
+export { IOTServer, Connection, Client, Device, msgTransmiter, MsgHandler, ConnectionType, BasicWsiotMsg, WsiotMsg, AuthMsg, MessageLiterals, ServerOption };
 export default IOTServer;
