@@ -217,5 +217,5 @@ class IOTServer {
 }
 export { IOTServer, Connection, Client, Device };
 export default IOTServer;
-const Server = (new IOTServer({ usePublic: true }));
+// const Server = (new IOTServer({ usePublic: true }));
 //# sourceMappingURL=index.js.map

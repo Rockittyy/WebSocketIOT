@@ -281,4 +281,4 @@ export {
     BasicWsiotMsg, WsiotMsg, AuthMsg, MessageLiterals, ServerOption
 };
 export default IOTServer;
-const Server = (new IOTServer({ usePublic: true }));
+// const Server = (new IOTServer({ usePublic: true }));
