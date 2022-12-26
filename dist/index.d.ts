@@ -67,9 +67,9 @@ declare abstract class Device extends Connection {
     get device(): string;
     static scream: msgTransmiter;
     static readonly DeviceKinds: {
-        [key: string]: new <T extends Device>(ws: WebSocket, id?: string) => T;
+        [key: string]: new (ws: WebSocket, id?: string | undefined) => Device;
     };
-    static readonly addDeviceKinds: (deviceClass: new <T extends Device>(ws: WebSocket, id?: string) => T) => new <T extends Device>(ws: WebSocket, id?: string) => T;
+    static readonly addDeviceKinds: (deviceClass: new (ws: WebSocket, id?: string | undefined) => Device) => new (ws: WebSocket, id?: string | undefined) => Device;
     static readonly devices: {
         [key: string]: Device;
     };

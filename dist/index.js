@@ -9,7 +9,7 @@ import { objify, getUniqueID, stringify, extension, fileName, isType, } from './
 import http from 'http';
 import express from 'express';
 import nedb from 'nedb';
-import WebSocket, { WebSocketServer } from 'ws';
+import { WebSocketServer } from 'ws';
 import * as fs from 'fs';
 //* connection object
 class Connection {
@@ -114,8 +114,7 @@ class Device extends Connection {
     // static prop
     // list of devices type
     static DeviceKinds = {};
-    static addDeviceKinds = (deviceClass) => Device.DeviceKinds[new deviceClass(new WebSocket(null)).deviceKind] = deviceClass;
-    // list of devices connection
+    static addDeviceKinds = (deviceClass) => Device.DeviceKinds[deviceClass.name] = deviceClass;
     static devices = {}; // store the connection
     static addDevice = (device) => Device.devices[device.id] = device; // syntax sugar to add connection
     constructor(ws, run, id, saveData = false) {

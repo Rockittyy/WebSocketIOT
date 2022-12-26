@@ -134,10 +134,10 @@ abstract class Device extends Connection {
 
     // static prop
     // list of devices type
-    public static readonly DeviceKinds: { [key: string]: new <T extends Device>(ws: WebSocket, id?: string) => T } = {};
-    public static readonly addDeviceKinds = (deviceClass: new <T extends Device>(ws: WebSocket, id?: string) => T) =>
-        Device.DeviceKinds[new deviceClass(new WebSocket(null)).deviceKind] = deviceClass;
-    // list of devices connection
+    public static readonly DeviceKinds: { [key: string]: new (ws: WebSocket, id?: string | undefined) => Device } = {};
+    public static readonly addDeviceKinds = (deviceClass: new (ws: WebSocket, id?: string | undefined) => Device) =>
+        Device.DeviceKinds[deviceClass.name] = deviceClass;
+
     public static readonly devices: { [key: string]: Device } = {};// store the connection
     public static readonly addDevice = (device: Device) => Device.devices[device.id] = device;// syntax sugar to add connection
 
