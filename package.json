@@ -1,6 +1,6 @@
 {
   "name": "websocketiot",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "npm module for creating  node.js-esp websocket IOT project",
   "main": "./dist/index.js",
   "type": "module",
