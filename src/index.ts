@@ -132,7 +132,7 @@ abstract class Device extends Connection {
     public get device(): string { return this.deviceKind + ":" + this.id };
     public static scream: msgTransmiter = (msg, deviceKind?: string) => {
         Object.keys(this.devices).filter((val) =>
-            this.devices[val].deviceKind === deviceKind).forEach((device) => this.devices[device].send(msg));
+            this.devices[val].deviceKind === deviceKind).forEach((device) => this.devices[device].send(msg))
     };
 
     // static prop
@@ -275,6 +275,6 @@ class IOTServer {
 }
 
 
-export { IOTServer, Connection, Device };
+export { IOTServer, Connection, Client, Device };
 export default IOTServer;
 // const Server = (new IOTServer({ usePublic: true }));
