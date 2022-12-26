@@ -75,7 +75,7 @@ declare abstract class Device extends Connection {
     };
     static readonly addDevice: (device: Device) => Device;
     abstract readonly deviceKind: string;
-    constructor(ws: WebSocket, run: MsgHandler, id: string, saveData?: boolean);
+    constructor(ws: WebSocket, run: MsgHandler, id?: string, saveData?: boolean);
 }
 interface ServerOption {
     port: number;

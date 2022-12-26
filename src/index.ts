@@ -145,7 +145,7 @@ abstract class Device extends Connection {
     // abstacts
     public abstract readonly deviceKind: string; //override
 
-    constructor(ws: WebSocket, run: MsgHandler, id: string, saveData = false) {
+    constructor(ws: WebSocket, run: MsgHandler, id?: string, saveData = false) {
         super(ws, run, id, saveData);
         Device.addDevice(this);
     }
@@ -266,7 +266,7 @@ class IOTServer {
             };
             connection.log("connected as ", connection.connectionType);
             server.runExtraAuth();
-            connection.send({ message: `connected as ${connection.device}` });
+            connection.send({ message: `connected as ${connection.device}`, id: connection.id });
         }, Connection.msgLiterals.auth.message,)
     }
 }
