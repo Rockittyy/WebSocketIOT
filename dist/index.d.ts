@@ -4,7 +4,8 @@ import express from 'express';
 import nedb from 'nedb';
 import WebSocket, { WebSocketServer } from 'ws';
 import Nedb from 'nedb';
-type MsgHandler = (msg: WsiotMsg) => void;
+type msgTransmiter = (msg: WsiotMsg) => void;
+type MsgHandler = (msg: WsiotMsg, connection?: Connection) => void;
 interface BasicWsiotMsg extends Object {
     message: string;
 }
@@ -23,6 +24,7 @@ interface MessageLiterals {
 }
 type ConnectionType = 'client' | 'device' | 'uknown';
 declare class Connection {
+    static scream: msgTransmiter;
     static readonly connections: {
         [key: string]: Connection;
     };
@@ -31,11 +33,12 @@ declare class Connection {
     static readonly sendError: (ws: WebSocket, error: string) => void;
     static readonly logRawFunc: (device: string, ...params: any[]) => void;
     static readonly log: (...params: any[]) => void;
-    static readonly attachMsgHandler: (ws: WebSocket, run: MsgHandler, request?: string, authenticated?: boolean) => void;
+    static readonly attachMsgHandler: (ws: WebSocket, run: MsgHandler, request?: string, authenticated?: boolean, connection?: Connection) => void;
     static readonly checkFormat: <T extends WsiotMsg>(req: WsiotMsg, type: T, ws?: WebSocket) => req is T;
     ws: WebSocket;
     readonly id: string;
     readonly connectionType: ConnectionType;
+    readonly connection: Connection;
     get device(): string;
     private saveData;
     data: object | undefined;
@@ -44,12 +47,25 @@ declare class Connection {
     send(msg: WsiotMsg): void;
     sendError(error: string): void;
     attachMsgHandler(run: MsgHandler, request?: string): void;
-    constructor(ws: WebSocket, run: (req: WsiotMsg) => void, id?: string, saveData?: boolean, connectionType?: ConnectionType, data?: object | undefined);
+    constructor(ws: WebSocket, run: MsgHandler, id?: string, saveData?: boolean, connectionType?: ConnectionType, data?: object | undefined);
     static readonly msgLiterals: MessageLiterals;
 }
-declare class Device extends Connection {
+declare class Client extends Connection {
+    readonly connection: Connection;
+    readonly connectionType: ConnectionType;
+    static scream: msgTransmiter;
+    static readonly clients: {
+        [key: string]: Client;
+    };
+    static readonly addClient: (client: Client) => Client;
+    static clientHandler: MsgHandler;
+    constructor(ws: WebSocket, id?: string, run?: MsgHandler);
+}
+declare abstract class Device extends Connection {
+    readonly connection: Connection;
     readonly connectionType: ConnectionType;
     get device(): string;
+    static scream: msgTransmiter;
     static readonly DeviceKinds: {
         [key: string]: new <T extends Device>(ws: WebSocket, id?: string) => T;
     };
@@ -58,8 +74,8 @@ declare class Device extends Connection {
         [key: string]: Device;
     };
     static readonly addDevice: (device: Device) => Device;
-    readonly deviceKind: string;
-    constructor(ws: WebSocket, run: (req: WsiotMsg) => void, id: string, saveData?: boolean);
+    abstract readonly deviceKind: string;
+    constructor(ws: WebSocket, run: MsgHandler, id: string, saveData?: boolean);
 }
 interface ServerOption {
     port: number;
@@ -91,5 +107,5 @@ declare class IOTServer {
     constructor(option?: object | ServerOption);
     private authProtocol;
 }
-export { IOTServer, Connection, Device };
+export { IOTServer, Connection, Client, Device };
 export default IOTServer;

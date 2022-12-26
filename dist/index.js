@@ -14,13 +14,14 @@ import * as fs from 'fs';
 //* connection object
 class Connection {
     // statics prop
+    static scream = (msg) => { Object.keys(this.connections).forEach((connection) => { this.connections[connection].send(msg); }); };
     static connections = {}; // store the connection
     static addConnection = (connection) => Connection.connections[connection.id] = connection; // syntax sugar to add connection
     static send = (ws, msg) => ws.send(stringify(msg));
     static sendError = (ws, error) => ws.send(stringify({ message: "error", error }));
     static logRawFunc = (device, ...params) => console.dirxml(device + ':', ...params);
     static log = (...params) => this.logRawFunc('uknown', ...params);
-    static attachMsgHandler = (ws, run, request, authenticated = false) => {
+    static attachMsgHandler = (ws, run, request, authenticated = false, connection) => {
         //    TODO: make the "no request found msg"
         ws.on('message', (msg) => {
             const objMsg = objify(msg.toString());
@@ -34,9 +35,10 @@ class Connection {
             }
             if (request && (objMsg.message != request))
                 return;
+            //* in case you forgot again, the  `request` parameter is the "id" for the request handler. so if its not the correct request it will return like in below
             if (!this.checkFormat(objMsg, this.msgLiterals.basic))
                 return;
-            run(objMsg);
+            run(objMsg, connection);
         });
     };
     static checkFormat = (req, type, ws) => {
@@ -49,6 +51,7 @@ class Connection {
     ws;
     id;
     connectionType = 'uknown';
+    connection = this;
     get device() { return this.connectionType + ":" + this.id; }
     ;
     saveData;
@@ -60,7 +63,7 @@ class Connection {
     ;
     sendError(error) { Connection.sendError(this.ws, error); }
     ;
-    attachMsgHandler(run, request) { Connection.attachMsgHandler(this.ws, run, request); }
+    attachMsgHandler(run, request) { Connection.attachMsgHandler(this.ws, run, request, true, this.connection); }
     ;
     constructor(ws, run, id = getUniqueID(), saveData = false, connectionType, data = undefined) {
         this.ws = ws;
@@ -85,28 +88,29 @@ class Connection {
 // subClass client, for client
 class Client extends Connection {
     // overrides
+    connection = this;
     connectionType = 'client';
-    // TODO: Scream function
+    static scream = (msg) => { Object.keys(this.clients).forEach((connection) => { this.clients[connection].send(msg); }); };
     // static prop
     static clients = {}; // store the connection
     static addClient = (client) => Client.clients[client.id] = client; // syntax sugar to add connection
+    static clientHandler = (req, connection) => { };
     constructor(ws, id, run) {
         // client handler
-        super(ws, (req) => {
-            const {} = this;
-            // TODO: client code handler //on progress
-            if (run)
-                run(req);
-        }, id);
+        super(ws, Client.clientHandler, id);
         Client.addClient(this);
     }
 }
 // subClass device, for robots
 class Device extends Connection {
     // overrides
+    connection = this;
     connectionType = 'device';
     get device() { return this.deviceKind + ":" + this.id; }
     ;
+    static scream = (msg, deviceKind) => {
+        Object.keys(this.devices).filter((val) => this.devices[val].deviceKind === deviceKind).forEach((device) => this.devices[device].send(msg));
+    };
     // static prop
     // list of devices type
     static DeviceKinds = {};
@@ -114,10 +118,9 @@ class Device extends Connection {
     // list of devices connection
     static devices = {}; // store the connection
     static addDevice = (device) => Device.devices[device.id] = device; // syntax sugar to add connection
-    // public prop
-    deviceKind = "unknown";
     constructor(ws, run, id, saveData = false) {
         super(ws, run, id, saveData);
+        Device.addDevice(this);
     }
 }
 class IOTServer {
@@ -192,6 +195,12 @@ class IOTServer {
                         Connection.sendError(ws, 'device kind is not specified');
                         return;
                     }
+                    // checking if the device type is legit
+                    let typeFound = false;
+                    Object.keys(Device.DeviceKinds).forEach((key) => { if (key === req.deviceType)
+                        typeFound = true; });
+                    if (!typeFound)
+                        return;
                     connection = new Device.DeviceKinds[req.deviceType](ws, req.id);
                     break;
                 default:
@@ -205,7 +214,7 @@ class IOTServer {
         }, Connection.msgLiterals.auth.message);
     }
 }
-export { IOTServer, Connection, Device };
+export { IOTServer, Connection, Client, Device };
 export default IOTServer;
 // const Server = (new IOTServer({ usePublic: true }));
 //# sourceMappingURL=index.js.map
