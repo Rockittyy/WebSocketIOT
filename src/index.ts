@@ -26,7 +26,7 @@ interface WsiotMsg extends BasicWsiotMsg { [key: string]: any; }
 interface AuthMsg extends BasicWsiotMsg {
     message: 'authRequest';
     type: ConnectionType;
-    deviceType?: string;
+    deviceKind?: string;
     id?: string;
 }
 
@@ -47,7 +47,7 @@ class Connection {
     public static readonly sendError = (ws: WebSocket, error: string) => ws.send(stringify({ message: "error", error }));
     public static readonly logRawFunc = (device: string, ...params: any[]) => console.dirxml(device + ':', ...params);
     public static readonly log = (...params: any[]) => this.logRawFunc('uknown', ...params);
-    public static readonly attachMsgHandler = (ws: WebSocket, run: MsgHandler, request?: string, authenticated: boolean = false, connection?: Connection) => {
+    public static readonly attachMsgHandler = (ws: WebSocket, run: MsgHandler, request?: string, authenticated: () => boolean = () => false, connection?: Connection) => {
         //    TODO: make the "no request found msg"
         ws.on('message', (msg) => {
             const objMsg: WsiotMsg | Error = objify(msg.toString());
@@ -83,7 +83,7 @@ class Connection {
     log(...params: any[]) { Connection.logRawFunc(this.device, ...params) };
     send(msg: WsiotMsg) { this.ws.send(stringify(msg)) };
     sendError(error: string) { Connection.sendError(this.ws, error) };
-    attachMsgHandler(run: MsgHandler, request?: string) { Connection.attachMsgHandler(this.ws, run, request, true, this.connection) };
+    attachMsgHandler(run: MsgHandler, request?: string) { Connection.attachMsgHandler(this.ws, run, request, () => true, this.connection) };
 
     constructor(ws: WebSocket, run: MsgHandler, id: string = getUniqueID(), saveData = false, connectionType?: ConnectionType, data: object | undefined = undefined) {
         this.ws = ws; this.run = run; this.id = id; this.saveData = saveData; this.data = data;
@@ -230,6 +230,7 @@ class IOTServer {
         Connection.log("websocketiot connection been made")
         // is the connection already authenticated or not
         var connection: Connection;
+        var authenticated = false;
         // send the identification request just in case
         const identifyMsg: WsiotMsg = { message: "auth is requested" }
         Connection.send(ws, identifyMsg);
@@ -239,7 +240,7 @@ class IOTServer {
                 connection.sendError(`this device already connected as ${connection.device}. an relogin attemp is forbids`)
                 return;
             };
-
+            Connection.log(req);
             if (!Connection.checkFormat(req, Connection.msgLiterals.auth, ws)) return;
             // authenticate the connection
             // if its an client
@@ -248,17 +249,17 @@ class IOTServer {
                     connection = new Client(ws, req.id);
                     break;
                 case 'device':
-                    if (!req.deviceType) {
+                    if (!req.deviceKind) {
                         // *badRequest
                         Connection.sendError(ws, 'device kind is not specified')
                         return;
                     }
                     // checking if the device type is legit
                     let typeFound = false
-                    Object.keys(Device.DeviceKinds).forEach((key) => { if (key === req.deviceType) typeFound = true })
+                    Object.keys(Device.DeviceKinds).forEach((key) => { if (key === req.deviceKind) typeFound = true })
                     if (!typeFound) return;
 
-                    connection = new Device.DeviceKinds[req.deviceType](ws, req.id);
+                    connection = new Device.DeviceKinds[req.deviceKind](ws, req.id);
                     break;
                 default:
                     Connection.sendError(ws, 'device type is not valid, device type avilable is "client" or "device" only');
@@ -267,7 +268,7 @@ class IOTServer {
             connection.log("connected as ", connection.connectionType);
             server.runExtraAuth();
             connection.send({ message: `connected as ${connection.device}`, id: connection.id });
-        }, Connection.msgLiterals.auth.message,)
+        }, Connection.msgLiterals.auth.message, () => authenticated)
     }
 }
 

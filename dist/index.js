@@ -21,7 +21,7 @@ class Connection {
     static sendError = (ws, error) => ws.send(stringify({ message: "error", error }));
     static logRawFunc = (device, ...params) => console.dirxml(device + ':', ...params);
     static log = (...params) => this.logRawFunc('uknown', ...params);
-    static attachMsgHandler = (ws, run, request, authenticated = false, connection) => {
+    static attachMsgHandler = (ws, run, request, authenticated = () => false, connection) => {
         //    TODO: make the "no request found msg"
         ws.on('message', (msg) => {
             const objMsg = objify(msg.toString());
@@ -63,7 +63,7 @@ class Connection {
     ;
     sendError(error) { Connection.sendError(this.ws, error); }
     ;
-    attachMsgHandler(run, request) { Connection.attachMsgHandler(this.ws, run, request, true, this.connection); }
+    attachMsgHandler(run, request) { Connection.attachMsgHandler(this.ws, run, request, () => true, this.connection); }
     ;
     constructor(ws, run, id = getUniqueID(), saveData = false, connectionType, data = undefined) {
         this.ws = ws;
@@ -171,6 +171,7 @@ class IOTServer {
         Connection.log("websocketiot connection been made");
         // is the connection already authenticated or not
         var connection;
+        var authenticated = false;
         // send the identification request just in case
         const identifyMsg = { message: "auth is requested" };
         Connection.send(ws, identifyMsg);
@@ -180,6 +181,7 @@ class IOTServer {
                 return;
             }
             ;
+            Connection.log(req);
             if (!Connection.checkFormat(req, Connection.msgLiterals.auth, ws))
                 return;
             // authenticate the connection
@@ -189,18 +191,18 @@ class IOTServer {
                     connection = new Client(ws, req.id);
                     break;
                 case 'device':
-                    if (!req.deviceType) {
+                    if (!req.deviceKind) {
                         // *badRequest
                         Connection.sendError(ws, 'device kind is not specified');
                         return;
                     }
                     // checking if the device type is legit
                     let typeFound = false;
-                    Object.keys(Device.DeviceKinds).forEach((key) => { if (key === req.deviceType)
+                    Object.keys(Device.DeviceKinds).forEach((key) => { if (key === req.deviceKind)
                         typeFound = true; });
                     if (!typeFound)
                         return;
-                    connection = new Device.DeviceKinds[req.deviceType](ws, req.id);
+                    connection = new Device.DeviceKinds[req.deviceKind](ws, req.id);
                     break;
                 default:
                     Connection.sendError(ws, 'device type is not valid, device type avilable is "client" or "device" only');
@@ -210,7 +212,7 @@ class IOTServer {
             connection.log("connected as ", connection.connectionType);
             server.runExtraAuth();
             connection.send({ message: `connected as ${connection.device}`, id: connection.id });
-        }, Connection.msgLiterals.auth.message);
+        }, Connection.msgLiterals.auth.message, () => authenticated);
     }
 }
 export { IOTServer, Connection, Client, Device };

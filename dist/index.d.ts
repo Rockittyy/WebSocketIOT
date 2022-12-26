@@ -15,7 +15,7 @@ interface WsiotMsg extends BasicWsiotMsg {
 interface AuthMsg extends BasicWsiotMsg {
     message: 'authRequest';
     type: ConnectionType;
-    deviceType?: string;
+    deviceKind?: string;
     id?: string;
 }
 interface MessageLiterals {
@@ -33,7 +33,7 @@ declare class Connection {
     static readonly sendError: (ws: WebSocket, error: string) => void;
     static readonly logRawFunc: (device: string, ...params: any[]) => void;
     static readonly log: (...params: any[]) => void;
-    static readonly attachMsgHandler: (ws: WebSocket, run: MsgHandler, request?: string, authenticated?: boolean, connection?: Connection) => void;
+    static readonly attachMsgHandler: (ws: WebSocket, run: MsgHandler, request?: string, authenticated?: () => boolean, connection?: Connection) => void;
     static readonly checkFormat: <T extends WsiotMsg>(req: WsiotMsg, type: T, ws?: WebSocket) => req is T;
     ws: WebSocket;
     readonly id: string;
