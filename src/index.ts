@@ -19,13 +19,12 @@ import Nedb from 'nedb';
 import { resolve } from 'path';
 import { rejects } from 'assert';
 import { Key } from 'readline';
+
+type msgTransmiter = (msg: WsiotMsg) => void;
 type MsgHandler = (msg: WsiotMsg, connection?: Connection) => void;
-interface BasicWsiotMsg extends Object {
-    message: string;
-}
-interface WsiotMsg extends BasicWsiotMsg {
-    [key: string]: any;
-}
+interface BasicWsiotMsg extends Object { message: string; }
+interface WsiotMsg extends BasicWsiotMsg { [key: string]: any; }
+
 // authenticate
 interface AuthMsg extends BasicWsiotMsg {
     message: 'authRequest';
@@ -44,6 +43,7 @@ type ConnectionType = 'client' | 'device' | 'uknown';
 //* connection object
 class Connection {
     // statics prop
+    public static scream: msgTransmiter = (msg: WsiotMsg) => { Object.keys(this.connections).forEach((connection) => { this.connections[connection].send(msg) }) };
     public static readonly connections: { [key: string]: Connection } = {};// store the connection
     public static readonly addConnection = (connection: Connection) => Connection.connections[connection.id] = connection;// syntax sugar to add connection
     public static readonly send = (ws: WebSocket, msg: WsiotMsg) => ws.send(stringify(msg));
@@ -111,11 +111,12 @@ class Client extends Connection {
     // overrides
     public readonly connection: Connection = this;
     public readonly connectionType: ConnectionType = 'client';
-    // TODO: Scream function
+    public static scream: msgTransmiter = (msg) => { Object.keys(this.clients).forEach((connection) => { this.clients[connection].send(msg) }) };
     // static prop
     public static readonly clients: { [key: string]: Client } = {};// store the connection
     public static readonly addClient = (client: Client) => Client.clients[client.id] = client;// syntax sugar to add connection
     public static clientHandler: MsgHandler = (req, connection) => { };
+
     constructor(ws: WebSocket, id?: string, run?: MsgHandler) {
         // client handler
         super(ws, Client.clientHandler, id);
@@ -124,11 +125,16 @@ class Client extends Connection {
 }
 
 // subClass device, for robots
-class Device extends Connection {
+abstract class Device extends Connection {
     // overrides
     public readonly connection: Connection = this;
     public readonly connectionType: ConnectionType = 'device';
     public get device(): string { return this.deviceKind + ":" + this.id };
+    public static scream: msgTransmiter = (msg, deviceKind?: string) => {
+        Object.keys(this.devices).filter((val) =>
+            this.devices[val].deviceKind === deviceKind).forEach((device) => this.devices[device].send(msg));
+    };
+
     // static prop
     // list of devices type
     public static readonly DeviceKinds: { [key: string]: new <T extends Device>(ws: WebSocket, id?: string) => T } = {};
@@ -139,11 +145,12 @@ class Device extends Connection {
     public static readonly addDevice = (device: Device) => Device.devices[device.id] = device;// syntax sugar to add connection
 
 
-    // public prop
-    public readonly deviceKind: string = "unknown";
+    // abstacts
+    public abstract readonly deviceKind: string; //override
 
     constructor(ws: WebSocket, run: MsgHandler, id: string, saveData = false) {
         super(ws, run, id, saveData);
+        Device.addDevice(this);
     }
 
     // TODO: ws setter for reconnecting
