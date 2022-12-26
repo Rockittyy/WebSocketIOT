@@ -19,7 +19,7 @@ import Nedb from 'nedb';
 import { resolve } from 'path';
 import { rejects } from 'assert';
 import { Key } from 'readline';
-type MsgHandler = (msg: WsiotMsg) => void;
+type MsgHandler = (msg: WsiotMsg, connection?: Connection) => void;
 interface BasicWsiotMsg extends Object {
     message: string;
 }
@@ -50,7 +50,7 @@ class Connection {
     public static readonly sendError = (ws: WebSocket, error: string) => ws.send(stringify({ message: "error", error }));
     public static readonly logRawFunc = (device: string, ...params: any[]) => console.dirxml(device + ':', ...params);
     public static readonly log = (...params: any[]) => this.logRawFunc('uknown', ...params);
-    public static readonly attachMsgHandler = (ws: WebSocket, run: MsgHandler, request?: string, authenticated: boolean = false) => {
+    public static readonly attachMsgHandler = (ws: WebSocket, run: MsgHandler, request?: string, authenticated: boolean = false, connection?: Connection) => {
         //    TODO: make the "no request found msg"
         ws.on('message', (msg) => {
             const objMsg: WsiotMsg | Error = objify(msg.toString());
@@ -60,8 +60,9 @@ class Connection {
             }
             if (!authenticated && objMsg.message != Connection.msgLiterals.auth.message) { Connection.sendError(ws, "please authenticate this connection before preceeding"); return; }
             if (request && (objMsg.message != request)) return;
+            //* in case you forgot again, the  `request` parameter is the "id" for the request handler. so if its not the correct request it will return like in below
             if (!this.checkFormat(objMsg, this.msgLiterals.basic)) return;
-            run(objMsg);
+            run(objMsg, connection);
         })
     }
     public static readonly checkFormat = <T extends WsiotMsg>(req: WsiotMsg, type: T, ws?: WebSocket): req is T => {
@@ -74,6 +75,7 @@ class Connection {
     public ws: WebSocket;
     public readonly id: string;
     public readonly connectionType: ConnectionType = 'uknown';
+    public readonly connection: Connection = this;
     public get device(): string { return this.connectionType + ":" + this.id };
 
     private saveData: boolean;
@@ -84,9 +86,9 @@ class Connection {
     log(...params: any[]) { Connection.logRawFunc(this.device, ...params) };
     send(msg: WsiotMsg) { this.ws.send(stringify(msg)) };
     sendError(error: string) { Connection.sendError(this.ws, error) };
-    attachMsgHandler(run: MsgHandler, request?: string) { Connection.attachMsgHandler(this.ws, run, request) };
+    attachMsgHandler(run: MsgHandler, request?: string) { Connection.attachMsgHandler(this.ws, run, request, true, this.connection) };
 
-    constructor(ws: WebSocket, run: (req: WsiotMsg) => void, id: string = getUniqueID(), saveData = false, connectionType?: ConnectionType, data: object | undefined = undefined) {
+    constructor(ws: WebSocket, run: MsgHandler, id: string = getUniqueID(), saveData = false, connectionType?: ConnectionType, data: object | undefined = undefined) {
         this.ws = ws; this.run = run; this.id = id; this.saveData = saveData; this.data = data;
         if (connectionType) this.connectionType = connectionType;
         Connection.addConnection(this);
@@ -107,18 +109,16 @@ class Connection {
 // subClass client, for client
 class Client extends Connection {
     // overrides
+    public readonly connection: Connection = this;
     public readonly connectionType: ConnectionType = 'client';
     // TODO: Scream function
     // static prop
     public static readonly clients: { [key: string]: Client } = {};// store the connection
     public static readonly addClient = (client: Client) => Client.clients[client.id] = client;// syntax sugar to add connection
+    public static clientHandler: MsgHandler = (req, connection) => { };
     constructor(ws: WebSocket, id?: string, run?: MsgHandler) {
         // client handler
-        super(ws, (req) => {
-            const { } = this;
-            // TODO: client code handler //on progress
-            if (run) run(req);
-        }, id);
+        super(ws, Client.clientHandler, id);
         Client.addClient(this);
     }
 }
@@ -126,6 +126,7 @@ class Client extends Connection {
 // subClass device, for robots
 class Device extends Connection {
     // overrides
+    public readonly connection: Connection = this;
     public readonly connectionType: ConnectionType = 'device';
     public get device(): string { return this.deviceKind + ":" + this.id };
     // static prop
@@ -141,7 +142,7 @@ class Device extends Connection {
     // public prop
     public readonly deviceKind: string = "unknown";
 
-    constructor(ws: WebSocket, run: (req: WsiotMsg) => void, id: string, saveData = false) {
+    constructor(ws: WebSocket, run: MsgHandler, id: string, saveData = false) {
         super(ws, run, id, saveData);
     }
 
@@ -248,6 +249,11 @@ class IOTServer {
                         Connection.sendError(ws, 'device kind is not specified')
                         return;
                     }
+                    // checking if the device type is legit
+                    let typeFound = false
+                    Object.keys(Device.DeviceKinds).forEach((key) => { if (key === req.deviceType) typeFound = true })
+                    if (!typeFound) return;
+
                     connection = new Device.DeviceKinds[req.deviceType](ws, req.id);
                     break;
                 default:
