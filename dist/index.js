@@ -61,10 +61,10 @@ class Connection {
     run;
     log(...params) { Connection.logRawFunc(this.device, ...params); }
     ;
-    send(msg) { if (this.isDecoy)
+    send(msg) { if (!this.isDecoy)
         this.ws.send(stringify(msg)); }
     ;
-    sendError(error) { if (this.isDecoy)
+    sendError(error) { if (!this.isDecoy)
         Connection.sendError(this.ws, error); }
     ;
     attachMsgHandler(run, request) { Connection.attachMsgHandler(this.ws, run, request, () => true, this.connection); }

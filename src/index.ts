@@ -85,8 +85,8 @@ class Connection {
     readonly run: MsgHandler;
 
     log(...params: any[]) { Connection.logRawFunc(this.device, ...params) };
-    send(msg: WsiotMsg) { if (this.isDecoy) this.ws.send(stringify(msg)) };
-    sendError(error: string) { if (this.isDecoy) Connection.sendError(this.ws, error) };
+    send(msg: WsiotMsg) { if (!this.isDecoy) this.ws.send(stringify(msg)) };
+    sendError(error: string) { if (!this.isDecoy) Connection.sendError(this.ws, error) };
     attachMsgHandler(run: MsgHandler, request?: string) { Connection.attachMsgHandler(this.ws, run, request, () => true, this.connection) };
     checkFormat<T extends WsiotMsg>(req: WsiotMsg, type: T, sendError = true): req is T { return Connection.checkFormat(req, type, sendError ? this.ws : undefined) }
 
