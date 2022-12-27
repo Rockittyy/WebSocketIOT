@@ -117,7 +117,7 @@ class Client extends Connection {
     // static prop
     public static readonly clients: { [key: string]: Client } = {};// store the connection
     public static readonly addClient = (client: Client) => Client.clients[client.id] = client;// syntax sugar to add connection
-    public static clientHandler: MsgHandler = (req, connection) => { connection?.log("client code is undefined") };
+    public static clientHandler: MsgHandler = async (req, connection) => { connection?.log("client code is undefined") };
 
     constructor(ws: WebSocket, id?: string, run?: MsgHandler) {
         // client handler

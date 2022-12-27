@@ -100,7 +100,7 @@ class Client extends Connection {
     // static prop
     static clients = {}; // store the connection
     static addClient = (client) => Client.clients[client.id] = client; // syntax sugar to add connection
-    static clientHandler = (req, connection) => { connection?.log("client code is undefined"); };
+    static clientHandler = async (req, connection) => { connection?.log("client code is undefined"); };
     constructor(ws, id, run) {
         // client handler
         super(ws, Client.clientHandler, false, id);
