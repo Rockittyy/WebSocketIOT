@@ -39,6 +39,7 @@ declare class Connection {
     readonly id: string;
     readonly connectionType: ConnectionType;
     readonly connection: Connection;
+    readonly isDecoy: boolean;
     get device(): string;
     private saveData;
     data: object | undefined;
@@ -48,7 +49,7 @@ declare class Connection {
     sendError(error: string): void;
     attachMsgHandler(run: MsgHandler, request?: string): void;
     checkFormat<T extends WsiotMsg>(req: WsiotMsg, type: T, sendError?: boolean): req is T;
-    constructor(ws: WebSocket, run: MsgHandler, id?: string, saveData?: boolean, connectionType?: ConnectionType, data?: object | undefined);
+    constructor(ws: WebSocket, run: MsgHandler, isDecoy?: boolean, id?: string, saveData?: boolean, connectionType?: ConnectionType, data?: object | undefined);
     static readonly msgLiterals: MessageLiterals;
 }
 declare class Client extends Connection {

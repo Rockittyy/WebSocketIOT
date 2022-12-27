@@ -53,6 +53,7 @@ class Connection {
     id;
     connectionType = 'uknown';
     connection = this;
+    isDecoy;
     get device() { return this.connectionType + ":" + this.id; }
     ;
     saveData;
@@ -60,16 +61,19 @@ class Connection {
     run;
     log(...params) { Connection.logRawFunc(this.device, ...params); }
     ;
-    send(msg) { this.ws.send(stringify(msg)); }
+    send(msg) { if (this.isDecoy)
+        this.ws.send(stringify(msg)); }
     ;
-    sendError(error) { Connection.sendError(this.ws, error); }
+    sendError(error) { if (this.isDecoy)
+        Connection.sendError(this.ws, error); }
     ;
     attachMsgHandler(run, request) { Connection.attachMsgHandler(this.ws, run, request, () => true, this.connection); }
     ;
     checkFormat(req, type, sendError = true) { return Connection.checkFormat(req, type, sendError ? this.ws : undefined); }
-    constructor(ws, run, id = getUniqueID(), saveData = false, connectionType, data = undefined) {
+    constructor(ws, run, isDecoy = false, id = getUniqueID(), saveData = false, connectionType, data = undefined) {
         this.ws = ws;
         this.run = run;
+        this.isDecoy = isDecoy;
         this.id = id;
         this.saveData = saveData;
         this.data = data;
@@ -99,7 +103,7 @@ class Client extends Connection {
     static clientHandler = (req, connection) => { connection?.log("client code is undefined"); };
     constructor(ws, id, run) {
         // client handler
-        super(ws, Client.clientHandler, id);
+        super(ws, Client.clientHandler, false, id);
         Client.addClient(this);
     }
 }
@@ -120,7 +124,7 @@ class Device extends Connection {
     static devices = {}; // store the connection
     static addDevice = (device) => Device.devices[device.id] = device; // syntax sugar to add connection
     constructor(ws, run, id, saveData = false) {
-        super(ws, run, id, saveData);
+        super(ws, run, false, id, saveData);
         Device.addDevice(this);
     }
 }

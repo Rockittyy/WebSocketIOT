@@ -76,6 +76,7 @@ class Connection {
     public readonly id: string;
     public readonly connectionType: ConnectionType = 'uknown';
     public readonly connection: Connection = this;
+    public readonly isDecoy: boolean;
     public get device(): string { return this.connectionType + ":" + this.id };
 
     private saveData: boolean;
@@ -84,13 +85,13 @@ class Connection {
     readonly run: MsgHandler;
 
     log(...params: any[]) { Connection.logRawFunc(this.device, ...params) };
-    send(msg: WsiotMsg) { this.ws.send(stringify(msg)) };
-    sendError(error: string) { Connection.sendError(this.ws, error) };
+    send(msg: WsiotMsg) { if (this.isDecoy) this.ws.send(stringify(msg)) };
+    sendError(error: string) { if (this.isDecoy) Connection.sendError(this.ws, error) };
     attachMsgHandler(run: MsgHandler, request?: string) { Connection.attachMsgHandler(this.ws, run, request, () => true, this.connection) };
     checkFormat<T extends WsiotMsg>(req: WsiotMsg, type: T, sendError = true): req is T { return Connection.checkFormat(req, type, sendError ? this.ws : undefined) }
 
-    constructor(ws: WebSocket, run: MsgHandler, id: string = getUniqueID(), saveData = false, connectionType?: ConnectionType, data: object | undefined = undefined) {
-        this.ws = ws; this.run = run; this.id = id; this.saveData = saveData; this.data = data;
+    constructor(ws: WebSocket, run: MsgHandler, isDecoy = false, id: string = getUniqueID(), saveData = false, connectionType?: ConnectionType, data: object | undefined = undefined) {
+        this.ws = ws; this.run = run; this.isDecoy = isDecoy; this.id = id; this.saveData = saveData; this.data = data;
         if (connectionType) this.connectionType = connectionType;
         Connection.addConnection(this);
         this.attachMsgHandler(this.run);
@@ -120,7 +121,7 @@ class Client extends Connection {
 
     constructor(ws: WebSocket, id?: string, run?: MsgHandler) {
         // client handler
-        super(ws, Client.clientHandler, id);
+        super(ws, Client.clientHandler, false, id);
         Client.addClient(this);
     }
 }
@@ -150,7 +151,7 @@ abstract class Device extends Connection {
     public abstract readonly deviceKind: string; //override
 
     constructor(ws: WebSocket, run: MsgHandler, id?: string, saveData = false) {
-        super(ws, run, id, saveData);
+        super(ws, run, false, id, saveData);
         Device.addDevice(this);
     }
 
@@ -273,7 +274,7 @@ class IOTServer {
         }, Connection.msgLiterals.auth.message, () => authenticated)
     }
 }
- 
+
 
 export {
     IOTServer, Connection, Client, Device,
