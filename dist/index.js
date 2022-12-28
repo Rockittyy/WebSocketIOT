@@ -32,6 +32,7 @@ class Connection {
             if (authenticated() != (objMsg.message != Connection.msgLiterals.auth.message)) {
                 Connection.sendError(ws, authenticated() ? `this device already connected as ${connection?.device}. an relogin attemp is forbids` :
                     "please authenticate this connection before preceeding");
+                connection?.log("reloggin attemp");
                 return;
             }
             if (request && (objMsg.message != request))
