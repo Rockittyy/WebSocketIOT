@@ -215,7 +215,7 @@ class IOTServer {
             ;
             connection.log("connected as ", connection.connectionType);
             server.runExtraAuth();
-            connection.send({ message: `connected as ${connection.device}`, id: connection.id });
+            connection.send({ message: `connected as ${connection.device}` });
             authenticated = true;
         }, Connection.msgLiterals.auth.message, () => authenticated);
     }
