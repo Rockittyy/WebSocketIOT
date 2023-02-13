@@ -91,6 +91,7 @@ interface ServerOption {
     publicPath: string;
     useRouter: boolean;
     routersPath: string;
+    initOnStart: boolean;
 }
 declare class IOTServer {
     readonly port: number;

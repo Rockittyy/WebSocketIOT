@@ -176,6 +176,8 @@ interface ServerOption {
 
     useRouter: boolean,
     routersPath: string,
+
+    initOnStart:boolean,
 }
 
 class IOTServer {
