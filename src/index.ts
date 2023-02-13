@@ -58,7 +58,7 @@ class Connection {
             if (authenticated() != (objMsg.message != Connection.msgLiterals.auth.message)) {
                 Connection.sendError(ws, authenticated() ? `this device already connected as ${connection?.device}. an relogin attemp is forbids` :
                     "please authenticate this connection before preceeding");
-                    connection?.log("reloggin attemp"); return;
+                connection?.log("reloggin attemp"); return;
             }
             if (request && (objMsg.message != request)) return;
             //* in case you forgot again, the  `request` parameter is the "id" for the request handler. so if its not the correct request it will return like in below
@@ -193,6 +193,10 @@ class IOTServer {
 
     readonly useRouter: boolean = false;
     readonly routersPath: string = `dist/router`; //in folder
+    readonly initOnStart: boolean = true;
+
+    readonly init = () => this.server.listen(this.port, () => { console.dir(`server is up on port ${this.port}!`); }) //start ws server;
+
     public runExtraAuth = () => { };
     extraAuth(run: () => void) { this.runExtraAuth = run }
 
@@ -200,7 +204,7 @@ class IOTServer {
         for (const [key, value] of Object.entries(option))
             if (value !== undefined)
                 this[key as keyof typeof this] = value;
-        const { port, app, server, wss, dbPath, db, saveDB, usePublic, publicPath, useRouter, routersPath } = this;
+        const { port, app, server, wss, dbPath, db, saveDB, usePublic, publicPath, useRouter, routersPath, initOnStart } = this;
         if (this.saveDB)// if the saveDb is true, then save it
         {
             this.db = new nedb({ filename: dbPath, autoload: true });
@@ -208,11 +212,8 @@ class IOTServer {
         }
         db.loadDatabase();
 
-
         if (usePublic) //if its use public folder, then use it
             app.use(express.static(publicPath)); // listen to public folder as all express should do
-        server.listen(port, () => { console.dir(`server is up on port ${port}!`); }) //start ws server
-
 
         if (useRouter)//use all the router in the routerPath
             fs.readdir(routersPath, (err, files) => {
@@ -224,7 +225,8 @@ class IOTServer {
                 }
                 )
             })
-
+        if (initOnStart)
+            this.init();
 
         // use auth protocol on websocket
         wss.on('connection', (ws) => this.authProtocol(ws, this));

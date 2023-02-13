@@ -142,13 +142,15 @@ class IOTServer {
     publicPath = `./src/public`;
     useRouter = false;
     routersPath = `dist/router`; //in folder
+    initOnStart = true;
+    init = () => this.server.listen(this.port, () => { console.dir(`server is up on port ${this.port}!`); }); //start ws server;
     runExtraAuth = () => { };
     extraAuth(run) { this.runExtraAuth = run; }
     constructor(option = {}) {
         for (const [key, value] of Object.entries(option))
             if (value !== undefined)
                 this[key] = value;
-        const { port, app, server, wss, dbPath, db, saveDB, usePublic, publicPath, useRouter, routersPath } = this;
+        const { port, app, server, wss, dbPath, db, saveDB, usePublic, publicPath, useRouter, routersPath, initOnStart } = this;
         if (this.saveDB) // if the saveDb is true, then save it
          {
             this.db = new nedb({ filename: dbPath, autoload: true });
@@ -157,7 +159,6 @@ class IOTServer {
         db.loadDatabase();
         if (usePublic) //if its use public folder, then use it
             app.use(express.static(publicPath)); // listen to public folder as all express should do
-        server.listen(port, () => { console.dir(`server is up on port ${port}!`); }); //start ws server
         if (useRouter) //use all the router in the routerPath
             fs.readdir(routersPath, (err, files) => {
                 if (err) {
@@ -170,6 +171,8 @@ class IOTServer {
                     import(`../${routersPath}/${file}`).then(module => app.use(`/${fileName(file)}`, module.router));
                 });
             });
+        if (initOnStart)
+            this.init();
         // use auth protocol on websocket
         wss.on('connection', (ws) => this.authProtocol(ws, this));
     }

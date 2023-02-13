@@ -104,6 +104,8 @@ declare class IOTServer {
     readonly publicPath: string;
     readonly useRouter: boolean;
     readonly routersPath: string;
+    readonly initOnStart: boolean;
+    readonly init: () => http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>;
     runExtraAuth: () => void;
     extraAuth(run: () => void): void;
     constructor(option?: object | ServerOption);
